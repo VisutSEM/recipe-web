@@ -411,10 +411,10 @@ export default function App() {
           <div className="inv-footer">
             <div className="inv-footer-left">
               {/* Simple QR */}
-              <div className="simple-qr-box no-print">
+              <div className="simple-qr-box">
                 {qrImage
                   ? <img src={qrImage} alt="QR Code" className="simple-qr-img" />
-                  : <label htmlFor="qr-upload-input" className="simple-qr-upload-prompt">
+                  : <label htmlFor="qr-upload-input" className="simple-qr-upload-prompt no-print">
                     <div className="simple-qr-upload-prompt-icon">📷</div>
                     <div className="simple-qr-upload-prompt-text">ផ្ទុក QR</div>
                   </label>
