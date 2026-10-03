@@ -13,6 +13,7 @@ const defaultData = {
     { description: '', qty: '', unitPrice: '', total: '' },
   ],
   discount: '',
+  deposit: '',
   note: '',
 };
 
@@ -61,7 +62,9 @@ export default function App() {
 
   const subtotal = form.items.reduce((acc, item) => acc + (Number(item.total) || 0), 0);
   const discountAmt = Number(form.discount) || 0;
+  const depositAmt = Number(form.deposit) || 0;
   const grandTotal = subtotal - discountAmt;
+  const remainingBalance = grandTotal - depositAmt;
 
   const handlePrint = () => {
     window.print();
@@ -152,7 +155,7 @@ export default function App() {
             />
           </div>
           <div className="form-group">
-            <label>វិធីសាស្ត្របង់ (Payment Method)</label>
+            <label>វិធីសាស្ត្របង់ប្រាក់(Payment Method)</label>
             <select
               value={form.paymentMethod}
               onChange={e => handleChange('paymentMethod', e.target.value)}
@@ -216,11 +219,22 @@ export default function App() {
         <div className="form-section">
           <h3 className="section-title">💰 សង្ខេបសរុប</h3>
           <div className="form-group">
-            <label>ឡូយកាត់ / Discount ($)</label>
+            <label>ការបញ្ចុះតម្លៃ / Discount ($)</label>
             <input
               type="number"
               value={form.discount}
               onChange={e => handleChange('discount', e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+          <div className="form-group">
+            <label>លុយកក់ / Deposit ($)</label>
+            <input
+              type="number"
+              value={form.deposit}
+              onChange={e => handleChange('deposit', e.target.value)}
               placeholder="0.00"
               min="0"
               step="0.01"
@@ -290,6 +304,28 @@ export default function App() {
             </div>
           </div>
 
+          {/* Promo Banner (Second Header) */}
+          <div className="inv-promo-banner">
+            <div className="inv-promo-title">ហ៊ាវិន តន្រ្តី ក្រុងសៀមរាប</div>
+            <div className="inv-promo-tagline">យើងខ្ញុំមានទទួលរៀបចំដូចជា</div>
+            <div className="inv-promo-services">
+              <span className="inv-promo-service">🎤 មេក្រូធុងបាស</span>
+              <span className="inv-promo-service">🎹 អកកេះ</span>
+              <span className="inv-promo-service">🎸 អកកាដង់</span>
+              <span className="inv-promo-service">🎧 ឌឺជេ</span>
+              <span className="inv-promo-service">💨 ផ្សែងពពក</span>
+              <span className="inv-promo-service">💡 ភ្លើងពណ៌</span>
+              <span className="inv-promo-service">🎪 ឆាក</span>
+              <span className="inv-promo-service">⚡ ម៉ាស៊ីនភ្លើង</span>
+            </div>
+            <div className="inv-promo-price">✨ តម្លៃសមរម្យ ✨</div>
+            <div className="inv-promo-contact">
+              <span>📞</span>
+              <span className="inv-promo-phone">0965 854 902</span>
+              <span>❤️ 🙏 🌺</span>
+            </div>
+          </div>
+
           {/* Company Details */}
           <div className="inv-contact">
             <div className="inv-contact-left">
@@ -335,7 +371,7 @@ export default function App() {
               <div className="inv-info-cell value-cell">{form.eventLocation || <span className="placeholder-text">___________</span>}</div>
             </div>
             <div className="inv-info-row">
-              <div className="inv-info-cell label-cell">វិធីសាស្ត្របង់</div>
+              <div className="inv-info-cell label-cell">វិធីសាស្ត្របង់ប្រាក់</div>
               <div className="inv-info-cell value-cell">{form.paymentMethod || <span className="placeholder-text">___________</span>}</div>
             </div>
           </div>
@@ -379,9 +415,9 @@ export default function App() {
                 {qrImage
                   ? <img src={qrImage} alt="QR Code" className="simple-qr-img" />
                   : <label htmlFor="qr-upload-input" className="simple-qr-upload-prompt">
-                      <div className="simple-qr-upload-prompt-icon">📷</div>
-                      <div className="simple-qr-upload-prompt-text">ផ្ទុក QR</div>
-                    </label>
+                    <div className="simple-qr-upload-prompt-icon">📷</div>
+                    <div className="simple-qr-upload-prompt-text">ផ្ទុក QR</div>
+                  </label>
                 }
               </div>
               {form.note && (
@@ -393,23 +429,23 @@ export default function App() {
 
             <div className="inv-summary">
               <div className="inv-summary-title">សង្ខេបសរុប</div>
-              <div className="inv-summary-row">
-                <span>ឡូយរង</span>
-                <span>${formatCurrency(subtotal)}</span>
+              <div className="inv-summary-row grand">
+                <span>លុយសរុប</span>
+                <span>${formatCurrency(grandTotal)}</span>
               </div>
               <div className="inv-summary-row">
-                <span>ឡូយកាត់</span>
-                <span>-${formatCurrency(discountAmt)}</span>
+                <span>លុយកក់</span>
+                <span>${formatCurrency(depositAmt)}</span>
               </div>
               <div className="inv-summary-row grand">
-                <span>ឡូយសរុប</span>
-                <span>${formatCurrency(grandTotal)}</span>
+                <span>លុយត្រូវបង់</span>
+                <span>${formatCurrency(remainingBalance)}</span>
               </div>
 
               <div className="inv-sign-block">
-                <p>បាក់ដំបង, ថ្ងៃ {form.date ? new Date(form.date).getDate() : '20'} ខែ {form.date ? new Date(form.date).getMonth() + 1 : '08'} ឆ្នាំ {form.date ? new Date(form.date).getFullYear() : '202_'}</p>
-                <p className="sign-label">ហត្ថលេខាអ្នកលក់គ្រឿង</p>
-                <div className="sign-line"></div>
+                <p>សៀមរាប, ថ្ងៃ {form.date ? new Date(form.date).getDate() : '20'} ខែ {form.date ? new Date(form.date).getMonth() + 1 : '08'} ឆ្នាំ {form.date ? new Date(form.date).getFullYear() : '202_'}</p>
+                <p className="sign-label"></p>
+                {/* <div className="sign-line"></div> */}
               </div>
             </div>
           </div>
@@ -418,27 +454,6 @@ export default function App() {
             * សូរ! ព្រោះការទូទាត់ប្រាក់រួចហើយ ទំនិញ មិនអាចផ្លាស់ប្ដូរបានទេ។
           </div>
 
-          {/* Promo Banner */}
-          <div className="inv-promo-banner">
-            <div className="inv-promo-title">ហ៊ាវិន តន្រ្តី ក្រុងសៀមរាប</div>
-            <div className="inv-promo-tagline">យើងខ្ញុំមានទទួលរៀបចំដូចជា</div>
-            <div className="inv-promo-services">
-              <span className="inv-promo-service">🎤 មេក្រូធុងបាស</span>
-              <span className="inv-promo-service">🎹 អកកេះ</span>
-              <span className="inv-promo-service">🎸 អកកាដង់</span>
-              <span className="inv-promo-service">🎧 ឌឺជេ</span>
-              <span className="inv-promo-service">💨 ផ្សែងពពក</span>
-              <span className="inv-promo-service">💡 ភ្លើងពណ៌</span>
-              <span className="inv-promo-service">🎪 ឆាក</span>
-              <span className="inv-promo-service">⚡ ម៉ាស៊ីនភ្លើង</span>
-            </div>
-            <div className="inv-promo-price">✨ តម្លៃសមរម្យ ✨</div>
-            <div className="inv-promo-contact">
-              <span>📞</span>
-              <span className="inv-promo-phone">0965 854 902</span>
-              <span>❤️ 🙏 🌺</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
