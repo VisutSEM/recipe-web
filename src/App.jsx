@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import './App.css';
 
 const defaultData = {
@@ -68,6 +69,20 @@ export default function App() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleSaveAsImage = async () => {
+    if (!printRef.current) return;
+    try {
+      const canvas = await html2canvas(printRef.current, { scale: 2, useCORS: true });
+      const image = canvas.toDataURL("image/jpeg", 1.0);
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `Invoice_${form.invoiceNo || 'Draft'}.jpg`;
+      link.click();
+    } catch (err) {
+      console.error("Error saving image:", err);
+    }
   };
 
   const formatCurrency = (val) => {
@@ -276,9 +291,14 @@ export default function App() {
           </div>
         </div>
 
-        <button className="print-btn" onClick={handlePrint}>
-          🖨️ Print / Save as PDF
-        </button>
+        <div className="action-buttons no-print" style={{ display: 'flex', gap: '10px' }}>
+          <button className="print-btn" onClick={handlePrint} style={{ flex: 1 }}>
+            🖨️ Print / Save as PDF
+          </button>
+          <button className="print-btn" onClick={handleSaveAsImage} style={{ flex: 1, backgroundColor: '#28a745' }}>
+            🖼️ ទាញយករូបភាព
+          </button>
+        </div>
       </div>
 
       {/* ===== RIGHT: INVOICE PREVIEW ===== */}
@@ -290,11 +310,11 @@ export default function App() {
           <div className="inv-header">
             <div className="inv-logo-block">
               <div className="inv-logo-box">
-                <span className="inv-logo-srm">VRS</span>
+                <span className="inv-logo-srm">VIN</span>
                 <span className="inv-logo-sub">VINN RICKY SOUND</span>
               </div>
               <div className="inv-company-info">
-                <div className="inv-company-kh">វីន Sound</div>
+                <div className="inv-company-kh">ហ៊ាវិន តន្រ្តី</div>
                 <div className="inv-company-en">VINN RICKY SOUND</div>
                 <p></p>
               </div>
@@ -331,7 +351,7 @@ export default function App() {
             <div className="inv-contact-left">
               <div><span className="contact-icon">📞</span> 096 585 4902</div>
               <div><span className="contact-icon">📍</span> Banteaychuer Village, Tuekvil Commune, Siemreap provence</div>
-              <div><span className="contact-icon">🏦</span> ABA: 009999230 (VINN)</div>
+              <div><span className="contact-icon">🏦</span> ABA: 009999230 (VANN VIN)</div>
             </div>
             <div className="inv-meta">
               <div className="inv-meta-row">
@@ -353,28 +373,36 @@ export default function App() {
           </div>
 
           {/* Info Table */}
-          <div className="inv-info-table">
-            <div className="inv-info-row">
-              <div className="inv-info-cell label-cell">ប្រភេទតន្រ្តី</div>
-              <div className="inv-info-cell value-cell">{form.businessType || <span className="placeholder-text">___________</span>}</div>
+          {(form.businessType || form.date || form.eventLocation || form.paymentMethod) && (
+            <div className="inv-info-table">
+              {form.businessType && (
+                <div className="inv-info-row">
+                  <div className="inv-info-cell label-cell">ប្រភេទតន្រ្តី</div>
+                  <div className="inv-info-cell value-cell">{form.businessType}</div>
+                </div>
+              )}
+              {form.date && (
+                <div className="inv-info-row">
+                  <div className="inv-info-cell label-cell">កាលបរិច្ឆេទ</div>
+                  <div className="inv-info-cell value-cell">
+                    {new Date(form.date).toLocaleDateString('en-GB').replace(/\//g, '/')}
+                  </div>
+                </div>
+              )}
+              {form.eventLocation && (
+                <div className="inv-info-row">
+                  <div className="inv-info-cell label-cell">ទីតាំងប្រគុំ</div>
+                  <div className="inv-info-cell value-cell">{form.eventLocation}</div>
+                </div>
+              )}
+              {form.paymentMethod && (
+                <div className="inv-info-row">
+                  <div className="inv-info-cell label-cell">វិធីសាស្ត្របង់ប្រាក់</div>
+                  <div className="inv-info-cell value-cell">{form.paymentMethod}</div>
+                </div>
+              )}
             </div>
-            <div className="inv-info-row">
-              <div className="inv-info-cell label-cell">កាលបរិច្ឆេទ</div>
-              <div className="inv-info-cell value-cell">
-                {form.date
-                  ? new Date(form.date).toLocaleDateString('en-GB').replace(/\//g, '/')
-                  : '__ / __ / ____'}
-              </div>
-            </div>
-            <div className="inv-info-row">
-              <div className="inv-info-cell label-cell">ទីតាំងប្រគុំ</div>
-              <div className="inv-info-cell value-cell">{form.eventLocation || <span className="placeholder-text">___________</span>}</div>
-            </div>
-            <div className="inv-info-row">
-              <div className="inv-info-cell label-cell">វិធីសាស្ត្របង់ប្រាក់</div>
-              <div className="inv-info-cell value-cell">{form.paymentMethod || <span className="placeholder-text">___________</span>}</div>
-            </div>
-          </div>
+          )}
 
           {/* Items Table */}
           <table className="inv-items-table">
@@ -395,13 +423,6 @@ export default function App() {
                   <td className="col-qty">{item.qty || '-'}</td>
                   <td className="col-price">{formatCurrency(item.unitPrice)}</td>
                   <td className="col-total">{formatCurrency(item.total)}</td>
-                </tr>
-              ))}
-              {/* Padding rows to fill space */}
-              {form.items.length < 5 && Array.from({ length: 5 - form.items.length }).map((_, i) => (
-                <tr key={`empty-${i}`} className="empty-row">
-                  <td>{form.items.length + i + 1}</td>
-                  <td></td><td></td><td></td><td></td>
                 </tr>
               ))}
             </tbody>
